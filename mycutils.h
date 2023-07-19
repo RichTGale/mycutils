@@ -53,8 +53,16 @@ char* timestamp();
 /******************************** In/Out *************************************/
 
 /**
- * This function asks the user to input a char in response to a prompt supplied
- * to it, then stores it in the supplied char pointer. 
+ * This function prints a string based oin the format string and argument
+ * list provided to it. It outputs the string to the file stream that is
+ * provided to the function. It also clears the current line of terminal that
+ * the cursor is on before printing on that line. 
+ */
+void fprintf_clear(FILE* fstreamp, char* fmt, ...);
+
+/**
+ * This function prints a prompt to the user, then assigns a string that is
+ * input by the user to the buffer provided to it.
  */
 void scans(char** buf, char* prompt);
 
@@ -113,25 +121,37 @@ void writefss(FILE* fstreamp, char* str);
  * string based on the argument list, then concatenates the argument list into 
  * the supplied format and stores it in the supplied string pointer.
  */
-void stringf(char** sptr, char *fmt, ...);
+void sfmt(char** sp, char *fmt, ...);
+
+/**
+ * This function removes the char element from the string provided to it which
+ * is at the element number provided to it.
+ */
+void sdelelem(char** sp, unsigned elem);
 
 /**
  * This function removes all cases of the provided char from the string at the
  * provided pointer.
  */
-void stringrmc(char** str, char remove);
+void sdelchar(char** sp, char remove);
 
 /**
  * This function removes the last character before the null character
  * from the string at the string pointer provided to it.
  */
-void stringrmlast(char** s);
+//void stringrmlast(char** s);
 
 /******************************* Terminal ************************************/
 
 #define LINE_HEIGHT 8
 #define CHAR_WIDTH LINE_HEIGHT
 
+enum directions {
+    UP,
+    DOWN,
+    LEFT,
+    RIGHT
+    };
 
 enum termcolours { 
     BLACK,
@@ -163,28 +183,17 @@ void curscolb(enum termcolours c);
 void curscolf(enum termcolours c);
 
 /**
+ * This function moves the terminal cursor a number of rows or columns
+ * equal to the number provided to the function, and in a direction that is
+ * also provided.
+ */
+void cursmv(unsigned int n, enum directions direction);
+
+/**
  * This function places the terminal cursor at the row and column numbers
  * provided to it.
  */
 void cursput(unsigned int col, unsigned int row);
-
-/**
- * This function moves the cursor left by the number of columns provided
- * to it.
- */
-void cursputb(unsigned int ncols);
-
-/**
- * This function moves the cursor right by the number of columns provided
- * to it.
- */
-void cursputf(unsigned int ncols);
-
-/**
- * This function moves the cursor up by the number of rows provided
- * to it.
- */
-void cursputu(unsigned int nrows);
 
 /**
  * This function clears the terminal.
@@ -195,7 +204,19 @@ void termclear();
  * This function clears the current line the terminal cursor is on from
  * the position of the cursor to the line's beginning.
  */
-void termclearl();
+void termclearb();
+
+/**
+ * This function clears the current line the terminal cursor is on from
+ * the position of the cursor to the line's end.
+ */
+void termclearf();
+
+/**
+ * This function clears the entire line that the terminal cursor is currently
+ * on.
+ */
+void termclearfb();
 
 /**
  * This function draws in the terminal base on the contents of a file.

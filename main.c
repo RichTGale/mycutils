@@ -15,24 +15,25 @@
 
 int main()
 {
-    FILE* fs;                   // File stream
-    struct timespec my_timer;   // Stores a time
-    uint64_t nanos_per_frame;   // The number of nanoseconds per frame
-    bool is_running;            // Whether the program is running
-    char* filename;             // Name of the file
-    char* filetext;             // Text to write to a file
-    char* userin;                // User input
-    int framecount;             // Counts how many frames have happened
+    FILE* fs;                   /* File stream. */
+    struct timespec my_timer;   /* Stores a time. */
+    uint64_t nanos_per_frame;   /* The number of nanoseconds per frame. */
+    bool is_running;            /* Whether the program is running. */
+    char* filename;             /* Name of the file. */
+    char* filetext;             /* Text to write to a file. */
+    char* tstamp;               /* Timestamp we need to free(). */
+    char* userin;               /* User input. */
+    int framecount;             /* Counts how many frames have happened. */
 
-    /* One frame per second. */
-    nanos_per_frame = NANOS_PER_SEC;
+    /* Sixty frame per second. */
+    nanos_per_frame = NANOS_PER_SEC / 60;
    
     /* Getting user input. */
     scans(&userin, "Write a name for the file: ");
     system("tput cud1");
 
     /* Creating a file name. */
-    stringf(&filename, "%s.txt", userin);
+    sfmt(&filename, "%s.txt", userin);
     free(userin); 
     fs = openfs(filename, "w");
 
@@ -52,12 +53,8 @@ int main()
             framecount++;
 
             /* Creating the text to write to the file. */
-            stringf(
-                    &filetext, 
-                    "Frame number %d at %s\n", 
-                    framecount, 
-                    timestamp()
-                    );
+            sfmt(&filetext, "Frame number %d at %s\n", 
+                    framecount, (tstamp = timestamp()));
 
             /* Writing the text to the file. */
             writefss(fs, filetext);
@@ -67,6 +64,7 @@ int main()
 
             /* Freeing memory. */
             free(filetext);
+            free(tstamp); /* See timestamp() for details on freeing this. */
 
             /* Checking if we should end the loop. */
             if (framecount == 5)
@@ -76,7 +74,6 @@ int main()
             start_timer(&my_timer); 
         }
     } 
-
 
     /* Closing the file. */
     closefs(fs);
