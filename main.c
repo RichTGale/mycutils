@@ -15,6 +15,8 @@
 
 int main()
 {
+    vec2d origin;
+    vec2d bounds;
     FILE* fs;                   /* File stream. */
     struct timespec my_timer;   /* Stores a time. */
     uint64_t nanos_per_frame;   /* The number of nanoseconds per frame. */
@@ -28,6 +30,13 @@ int main()
     /* Sixty frame per second. */
     nanos_per_frame = NANOS_PER_SEC / 60;
    
+    /* Drawing heading. */
+    termclear();
+    origin.x = 1;
+    origin.y = 1;
+    bounds = termres();
+    termdraws("art", origin, bounds);
+    
     /* Getting user input. */
     scans(&userin, "Write a name for the file: ");
     system("tput cud1");
@@ -42,6 +51,9 @@ int main()
 
     /* Getting the start time. */
     start_timer(&my_timer);
+
+    /* No frames have past yet. */
+    framecount = 0;
 
     /* Running the loop. */ 
     while (is_running)
@@ -64,7 +76,7 @@ int main()
 
             /* Freeing memory. */
             free(filetext);
-            free(tstamp); /* See timestamp() for details on freeing this. */
+            free(tstamp); /* See timestamp() for details on freeing this. */
 
             /* Checking if we should end the loop. */
             if (framecount == 5)

@@ -172,6 +172,7 @@ void scans(char** buf, char* prompt)
     /* Arbitrarily initialising to avoid crash later. */
     *buf = (char*) malloc(sizeof(char));
     btemp = (char*) malloc(sizeof(char));
+    btemp[0] = '\0';
 
     do
     {
@@ -244,7 +245,7 @@ void closefs(FILE* fs)
     /* There was an error closing the file stream so we are printing it
      * on stderr and exiting the program. */
     fprintf(stderr,
-            "[ %s ] ERROR: In function close_file: %s\n", 
+            "[ %s ] ERROR: In function closefs: %s\n", 
             timestamp(), strerror(errno));
     exit(EXIT_FAILURE);
 }
@@ -267,7 +268,7 @@ FILE* openfs(char* fname, char* mode)
     /* There was an error opening the file so wea re printing the error to
      * stderr and exiting the program. */
     fprintf(stderr, 
-            "[ %s ] ERROR: In function open_file(): "
+            "[ %s ] ERROR: In function openfs(): "
             "Could not open file %s: %s\n",
             timestamp(), fname, strerror(errno));
     exit(EXIT_FAILURE);
@@ -294,7 +295,7 @@ bool readfsc(FILE* fs, char* buf)
     /* An error occurred so we are printing an error message and exiting 
      * the program. */
     fprintf(stderr,
-            "[ %s ] ERROR: In function read_filec(): %s\n",
+            "[ %s ] ERROR: In function readfsc(): %s\n",
             timestamp(), strerror(errno));
     exit(EXIT_FAILURE);
 }
@@ -327,7 +328,7 @@ bool readfsl(FILE* fs, char** buf)
     /* An error occurred so we are printing an error message and exiting
      * the program. */
     fprintf(stdout,
-            "[ %s ] ERROR: In function read_fileln: %s\n",
+            "[ %s ] ERROR: In function readfsl: %s\n",
             timestamp(), strerror(errno));
     exit(EXIT_FAILURE);
 }
@@ -521,7 +522,7 @@ void cursput(unsigned int col, unsigned int row)
     char* cmd;   /* The command. */
 
     /* Setting the cursor position. */
-    sfmt(&cmd, "tput cup %d %d", col, row);
+    sfmt(&cmd, "tput cup %d %d", row, col);
     system(cmd);
 
     /* Cleaning up. */
@@ -569,13 +570,13 @@ void termclearfb()
 }
 
 /**
- * This function draws in the terminal base on the contents of a file.
+ * This function draws in the terminal based on the contents of a file.
  */
 void termdrawfs(char* filepath, vec2d origin, vec2d bounds)
 {
     FILE* fs;   /* Pointer to the file stream. */
     char* line; /* The text in the file. */
-   
+
     /* Ensuring that the buffer is set to NULL. */
     line = NULL;
     
@@ -624,6 +625,7 @@ void termdrawl(char* text, size_t text_len, vec2d origin, vec2d bounds)
             system("tput cuf1");
         }
     }
+    textmode(NORMAL);
 }
 
 /**
@@ -638,7 +640,7 @@ void termdraws(char* str, vec2d origin, vec2d bounds)
     /* Drawing the string. */
     for (c = 0; c < strlen(str); c++)
     {
-        sfmt(&filepath, "../../art/%c.txt", str[c]);
+        sfmt(&filepath, "./art/%c.txt", str[c]);
         termdrawfs(filepath, origin, bounds);
         origin.x += CHAR_WIDTH;
         free(filepath);
@@ -672,8 +674,8 @@ vec2d termres()
     fgets(cbuf, sizeof(cbuf), cfp);
 
     /* Converting the number of rows and columns to integers. */
-    res.x = atoi(rbuf); //strtol( cbuf, &end, 10 );
-    res.y = atoi(cbuf); //strtol( rbuf, &end, 10 );
+    res.x = atoi(cbuf); //strtol( cbuf, &end, 10 );
+    res.y = atoi(rbuf); //strtol( rbuf, &end, 10 );
 
     /* Closing the files. */
     closefs(rfp);

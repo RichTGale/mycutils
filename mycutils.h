@@ -219,7 +219,7 @@ void termclearf();
 void termclearfb();
 
 /**
- * This function draws in the terminal base on the contents of a file.
+ * This function draws in the terminal based on the contents of a file.
  */
 void termdrawfs(char* filepath, vec2d origin, vec2d bounds);
 
