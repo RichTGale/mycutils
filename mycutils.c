@@ -284,7 +284,8 @@ bool readfsc(FILE* fs, char* buf)
     const bool SUCCESS = true;      /* Return value if success. */
     const bool END_OF_FILE = false; /* Return value if EOF. */
 
-    /* Getting user input and checking if it was successfully read. */
+    /* Getting the next char from the file stream and checking if it was
+     * successfully read. */
     if ((*buf = fgetc(fs)) != EOF) 
         return SUCCESS;
 
@@ -316,8 +317,8 @@ bool readfsl(FILE* fs, char** buf)
     /* Initialising how big the buffer is. */
     n = 0;
     
-    /* Reading the next line from the file and checking if it was read
-     * successfully. */
+    /* Reading the next line from the file stream and checking if it was
+     * read successfully. */
     if (getline(buf, &n, fs) != -1)
         return SUCCESS;
 
