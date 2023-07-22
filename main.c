@@ -15,8 +15,8 @@
 
 int main()
 {
-    vec2d origin;
-    vec2d bounds;
+    vec2d origin;               /* The picture's point of origin. */
+    vec2d bounds;               /* The spacial limits of the picture. */
     FILE* fs;                   /* File stream. */
     struct timespec my_timer;   /* Stores a time. */
     uint64_t nanos_per_frame;   /* The number of nanoseconds per frame. */
@@ -76,7 +76,7 @@ int main()
 
             /* Freeing memory. */
             free(filetext);
-            free(tstamp); /* See timestamp() for details on freeing this. */
+            free(tstamp); /* See timestamp() for details on freeing this. */
 
             /* Checking if we should end the loop. */
             if (framecount == 5)

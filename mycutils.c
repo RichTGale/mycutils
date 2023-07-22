@@ -162,21 +162,22 @@ void fprintf_clear(FILE* fs, char* fmt, ...)
 
 /**
  * This function prints a prompt to the user, then assigns a string that is
- * input by the user to the buffer provided to it.
+ * input by the user to the string pointer provided to it.
  */
 void scans(char** buf, char* prompt)
 {
     char* btemp;    /* Temp storage for the buffer. */
     char userin;    /* The user input. */
 
-    /* Arbitrarily initialising to avoid crash later. */
+    /* Arbitrarily initialising to avoid invalid pointer error upon
+     * initial call to free(). */
     *buf = (char*) malloc(sizeof(char));
     btemp = (char*) malloc(sizeof(char));
     btemp[0] = '\0';
 
     do
     {
-        /* Printing a prompt to the user. */
+        /* Printing the prompt and any past user input. */
         fprintf_clear(stdout, "%s%s", prompt, btemp);
 
         /* Getting and processing user input. */
@@ -683,8 +684,7 @@ vec2d termres()
     closefs(cfp);
 
     /* Deleting the files. */
-    system("rm temp/screen_rows.txt");
-    system("rm temp/screen_cols.txt");
+    system("rm -rf temp");
 
     /* Returning the number of rows and columns that the terminal has. */
     return res;
