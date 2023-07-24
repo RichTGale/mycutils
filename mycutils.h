@@ -53,14 +53,6 @@ char* timestamp();
 /******************************** In/Out *************************************/
 
 /**
- * This function prints a string based oin the format string and argument
- * list provided to it. It outputs the string to the file stream that is
- * provided to the function. It also clears the current line of terminal that
- * the cursor is on before printing on that line. 
- */
-void fprintf_clear(FILE* fstreamp, char* fmt, ...);
-
-/**
  * This function prints a prompt to the user, then assigns a string that is
  * input by the user to the buffer provided to it.
  */
@@ -117,11 +109,18 @@ void writefss(FILE* fstreamp, char* str);
 /******************************** Strings ************************************/
 
 /**
+ * This function returns the number of bytes a string will need to be
+ * allocated based on the variable argument list and a format string that are
+ * provided to this function.
+ */
+size_t vbytesfmt(va_list lp, char* fmt);
+
+/**
  * This function dynamically allocates only the needed amount of memory to a
  * string based on the argument list, then concatenates the argument list into 
  * the supplied format and stores it in the supplied string pointer.
  */
-void sfmt(char** sp, char *fmt, ...);
+void strfmt(char** sp, char *fmt, ...);
 
 /**
  * This function removes the char element from the string provided to it which

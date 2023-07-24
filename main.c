@@ -25,6 +25,7 @@ int main()
     char* filetext;             /* Text to write to a file. */
     char* tstamp;               /* Timestamp we need to free(). */
     char* userin;               /* User input. */
+    char* prompt;               /* User prompt. */
     int framecount;             /* Counts how many frames have happened. */
 
     /* Sixty frame per second. */
@@ -37,12 +38,12 @@ int main()
     bounds = termres();
     termdraws("art", origin, bounds);
     
-    /* Getting user input. */
+
+    /* Getting a filename from the user. */
     scans(&userin, "Write a name for the file: ");
-    system("tput cud1");
 
     /* Creating a file name. */
-    sfmt(&filename, "%s.txt", userin);
+    strfmt(&filename, "%s.txt", userin);
     free(userin); 
     fs = openfs(filename, "w");
 
@@ -65,7 +66,7 @@ int main()
             framecount++;
 
             /* Creating the text to write to the file. */
-            sfmt(&filetext, "Frame number %d at %s\n", 
+            strfmt(&filetext, "Frame number %d at %s\n", 
                     framecount, (tstamp = timestamp()));
 
             /* Writing the text to the file. */

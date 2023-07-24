@@ -77,7 +77,7 @@ char* timestamp()
     }
 
     /* Converting time to local time format. */
-    if (ctime_r(&current_time, stamp) == NULL)
+    if ((stamp = ctime(&current_time)) == NULL)
     {
         /* There was an error converting the time to a string so we're
          * printing a message to stderr and exiting the program. */
@@ -96,7 +96,7 @@ char* timestamp()
      * If this copy is not freed by the calling function, it will create a 
      * memory leak.
      */
-    sfmt(&stamp_cpy, "%s", stamp);
+    strfmt(&stamp_cpy, "%s", stamp);
 
     /* Removing the newline character that was added by ctime(). */
     sdelchar(&stamp_cpy, '\n');
@@ -108,77 +108,33 @@ char* timestamp()
 /******************************** In/Out *************************************/
 
 /**
- * This function prints a string based oin the format string and argument
- * list provided to it. It outputs the string to the file stream that is
- * provided to the function. It also clears the current line of terminal that
- * the cursor is on before printing on that line. 
- */
-void fprintf_clear(FILE* fs, char* fmt, ...)
-{
-    va_list lptr;       /* Pointer to the list of arguments. */
-    va_list lptr_cpy;   /* A Copy of the list of arguments. */
-    size_t bytes;       /* The number of bytes the string needs. */
-    char* prompt;       /* The prompt. */
-
-    /* Pointing to the first argument. */
-    va_start(lptr, fmt);
-
-    /* Copying the argument list. */
-    va_copy(lptr_cpy, lptr);
-
-    /* Getting the number of bytes the string will need. Adding an extra
-     * 1 char worth of bytes for the null character. */
-    bytes = vsnprintf(NULL, 0, fmt, lptr_cpy) + sizeof(char);
-	
-    /* Assuring a clean finish to the copy. */
-    va_end(lptr_cpy);
-
-    /* Allocating memory to the string. */
-    prompt = (char*) malloc(bytes);
-
-    /* Creating the string. */
-    vsnprintf(prompt, bytes, fmt, lptr);
-
-    /* Assuring a clean finish to the argument list. */
-    va_end(lptr);
-
-    /* Clearing the current line that the terminal cursor is on. */
-    termclearfb();
-
-    /* Moving the terminal cursor to the beginning of the current line it is
-     * on */
-    cursmv(strlen(prompt) + 1, LEFT);
-
-    /* Printing the prompt. */
-    fprintf(fs, "%s\n", prompt);
-
-    /* Moving the cursor to the end of the line. */
-    cursmv(1, UP);
-    cursmv(strlen(prompt), RIGHT);
-
-    /* De-allocating memory from the prompt. */
-    free(prompt);
-}
-
-/**
  * This function prints a prompt to the user, then assigns a string that is
  * input by the user to the string pointer provided to it.
  */
 void scans(char** buf, char* prompt)
 {
-    char* btemp;    /* Temp storage for the buffer. */
+    char* buf_cpy;  /* A copy of the buffer. */
     char userin;    /* The user input. */
 
     /* Arbitrarily initialising to avoid invalid pointer error upon
      * initial call to free(). */
     *buf = (char*) malloc(sizeof(char));
-    btemp = (char*) malloc(sizeof(char));
-    btemp[0] = '\0';
+    *buf[0] = '\0';
+    strfmt(&buf_cpy, "%s", *buf);
 
+    /* Going to a new line. */
+    fprintf(stdout, "\n");
+    
     do
     {
+        /* Clearing the line. */
+        termclearfb();
+        cursmv(strlen(prompt) + strlen(*buf) + 1, LEFT);
+
         /* Printing the prompt and any past user input. */
-        fprintf_clear(stdout, "%s%s", prompt, btemp);
+        fprintf(stdout, "%s%s\n", prompt, *buf);
+        cursmv(1, UP);
+        cursmv(strlen(prompt) + strlen(*buf), RIGHT);
 
         /* Getting and processing user input. */
         switch (userin = scanc_nowait())
@@ -186,7 +142,11 @@ void scans(char** buf, char* prompt)
             /* Backspace. */
             case (int) 127:
                 /* Removing the last character in the buffer. */ 
-                sdelelem(&btemp, strlen(btemp) - 1);
+                sdelelem(buf, strlen(*buf) - 1);
+                
+                /* Recreating the temporary copy of the buffer. */
+                free(buf_cpy);
+                strfmt(&buf_cpy, "%s", *buf);
                 break;
             
             /* Enter. */
@@ -197,16 +157,16 @@ void scans(char** buf, char* prompt)
             default:
                 /* Recreating the buffer. */
                 free(*buf);
-                sfmt(buf, "%s%c", btemp, userin);
+                strfmt(buf, "%s%c", buf_cpy, userin);
 
                 /* Recreating the temporary copy of the buffer. */
-                free(btemp);
-                sfmt(&btemp, "%s", *buf);
+                free(buf_cpy);
+                strfmt(&buf_cpy, "%s", *buf);
         }
     } while(userin != '\n');
 
     /* De-allocating temp variable memory. */
-    free(btemp);
+    free(buf_cpy);
 }
 
 /**
@@ -361,18 +321,14 @@ void writefss(FILE* fs, char* str)
 /******************************** Strings ************************************/
 
 /**
- * This function dynamically allocates only the needed amount of memory to a
- * string based on the argument list, then concatenates the argument list into 
- * the supplied format and stores it in the supplied string pointer.
+ * This function returns the number of bytes a string will need to be
+ * allocated based on the variable argument list and a format string that are
+ * provided to this function.
  */
-void sfmt(char** sp, char *fmt, ...)
+size_t vbytesfmt(va_list lp, char* fmt)
 {
-    va_list lp;     /* Pointer to the list of arguments. */
     va_list lp_cpy; /* A Copy of the list of arguments. */
     size_t bytes;   /* The number of bytes the string needs. */
-
-    /* Pointing to the first argument. */
-    va_start(lp, fmt);
 
     /* Copying the argument list. */
     va_copy(lp_cpy, lp);
@@ -384,11 +340,31 @@ void sfmt(char** sp, char *fmt, ...)
     /* Assuring a clean finish to the copy. */
     va_end(lp_cpy);
 
+    /* Returning the number of bytes the string will need. */
+    return bytes;
+}
+
+/**
+ * This function dynamically allocates only the needed amount of memory to a
+ * string based on the argument list, then concatenates the argument list into 
+ * the supplied format and stores it in the supplied string pointer.
+ */
+void strfmt(char** sp, char *fmt, ...)
+{
+    va_list lp;     /* Pointer to the list of arguments. */
+    size_t bytes;   /* The number of bytes the string needs. */
+
+    /* Pointing to the first argument. */
+    va_start(lp, fmt);
+
+    /* Getting the number of bytes the string will need to be allocated. */
+    bytes = vbytesfmt(lp, fmt);
+
     /* Allocating memory to the string. */
     *sp = (char*) malloc(bytes);
 
     /* Creating the string. */
-    vsnprintf(*sp, bytes, fmt, lp);
+    vsprintf(*sp, fmt, lp);
 
     /* Assuring a clean finish to the argument list. */
     va_end(lp);
@@ -421,7 +397,7 @@ void sdelelem(char** sp, unsigned elem)
 
     /* Recreating the string. */
     free(*sp);
-    sfmt(sp, "%s%s", to_elem, from_elem);
+    strfmt(sp, "%s%s", to_elem, from_elem);
 
     /* Cleaning up. */
     free(to_elem);
@@ -460,7 +436,7 @@ void curscolb(enum termcolours c)
     char* cmd;  /* The command. */
 
     /* Setting the background colour. */
-    sfmt(&cmd, "tput setab %d", c);
+    strfmt(&cmd, "tput setab %d", c);
     system(cmd);
 
     /* Cleaning up. */
@@ -475,7 +451,7 @@ void curscolf(enum termcolours c)
     char* cmd;   /* The command. */
 
     /* Setting the colour. */
-    sfmt(&cmd, "tput setaf %d", c);
+    strfmt(&cmd, "tput setaf %d", c);
     system(cmd);
 
     /* Cleaning up. */
@@ -495,16 +471,16 @@ void cursmv(unsigned int n, enum directions direction)
     switch (direction)
     {
         case UP:
-            sfmt(&cmd, "tput cuu %d", n);
+            strfmt(&cmd, "tput cuu %d", n);
             break;
         case DOWN:
-            sfmt(&cmd, "tput cud %d", n);
+            strfmt(&cmd, "tput cud %d", n);
             break;
         case LEFT:
-            sfmt(&cmd, "tput cub %d", n);
+            strfmt(&cmd, "tput cub %d", n);
             break;
         case RIGHT:
-            sfmt(&cmd, "tput cuf %d", n);
+            strfmt(&cmd, "tput cuf %d", n);
             break;
     }
 
@@ -524,7 +500,7 @@ void cursput(unsigned int col, unsigned int row)
     char* cmd;   /* The command. */
 
     /* Setting the cursor position. */
-    sfmt(&cmd, "tput cup %d %d", row, col);
+    strfmt(&cmd, "tput cup %d %d", row, col);
     system(cmd);
 
     /* Cleaning up. */
@@ -642,7 +618,7 @@ void termdraws(char* str, vec2d origin, vec2d bounds)
     /* Drawing the string. */
     for (c = 0; c < strlen(str); c++)
     {
-        sfmt(&filepath, "./art/%c.txt", str[c]);
+        strfmt(&filepath, "./art/%c.txt", str[c]);
         termdrawfs(filepath, origin, bounds);
         origin.x += CHAR_WIDTH;
         free(filepath);
@@ -716,7 +692,7 @@ void termprint(char* str, vec2d origin)
 
     /* Printing the string. */
     cursput(origin.x, origin.y);
-    sfmt(&cmd, "printf \"%s\"", str);
+    strfmt(&cmd, "printf \"%s\"", str);
     system(cmd);
 
     /* Cleaning up. */
