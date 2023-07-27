@@ -17,8 +17,10 @@
  */
 bool check_timer(struct timespec start, uint64_t wait_time)
 {
-    struct timespec current;    /* The current time. */
-    struct timespec elapsed;    /* The time elapsed since start. */
+    const bool HAS_ELAPSED = true;      /* Value if time has elapsed. */
+    const bool NOT_ELAPSED = false;     /* Value if time has not elapsed. */
+    struct timespec current;            /* The current time. */
+    struct timespec elapsed;            /* The time elapsed since start. */
 
     /* Obtaining the current time. */
     clock_gettime(CLOCK_REALTIME, &current);
@@ -29,10 +31,10 @@ bool check_timer(struct timespec start, uint64_t wait_time)
 
     /* Checking whether the time hasn't elapsed. */
     if ((elapsed.tv_sec * NANOS_PER_SEC) + elapsed.tv_nsec < wait_time)
-        return false;
+        return NOT_ELAPSED;
 
     /* The time has elapsed. */
-    return true;
+    return HAS_ELAPSED;
 }
 
 /**
@@ -41,15 +43,21 @@ bool check_timer(struct timespec start, uint64_t wait_time)
  */
 void start_timer(struct timespec* ts)
 {
+    char* tstamp;
+
     /* Obtaining the current time.*/
     if ((clock_gettime(CLOCK_REALTIME, ts)) != -1)
         return;
         
-    /* An error occured so we are printing it to stderr and exiting the
-     * program. */
+    /* An error occured so we are printing an error message. */
     fprintf(stderr, 
             "[ %s ] ERROR: in function start_timer(): %s\n",
-            timestamp(), strerror(errno));
+            (tstamp = timestamp()), strerror(errno));
+
+    /* De-allocating memory. */
+    free(tstamp);
+
+    /* Exiting the program. */
     exit(EXIT_FAILURE);
     
 }
@@ -68,8 +76,8 @@ char* timestamp()
     /* Obtaining the current time. */
     if ((current_time = time(NULL)) == ((time_t) - 1))
     {
-        /* There was an error obtaining the time so we're printing 
-         * a message to stderr and exiting the program. */
+        /* An error occured so we're printing an error message to and exiting
+         * the program. */
         fprintf(stderr, 
                 "ERROR: In function timestamp(): "
                 "Calender time is not available\n");
@@ -79,8 +87,8 @@ char* timestamp()
     /* Converting time to local time format. */
     if ((stamp = ctime(&current_time)) == NULL)
     {
-        /* There was an error converting the time to a string so we're
-         * printing a message to stderr and exiting the program. */
+        /* An error occured converting so we're printing an error message
+         * and exiting the program. */
         fprintf(stderr, 
                 "ERROR: In function timestamp(): "
                 "Failure to convert the current time to a string.\n");
@@ -199,15 +207,21 @@ char scanc_nowait() {
  */
 void closefs(FILE* fs)
 {
+    char* tstamp;   /* A time stamp. */
+
     /* Closing the file stream. */
     if (fclose(fs) == 0)
         return;
     
-    /* There was an error closing the file stream so we are printing it
-     * on stderr and exiting the program. */
+    /* An error occured so we are printing an error message. */
     fprintf(stderr,
             "[ %s ] ERROR: In function closefs: %s\n", 
-            timestamp(), strerror(errno));
+            (tstamp = timestamp()), strerror(errno));
+
+    /* De-allocating memory. */
+    free(tstamp);
+
+    /* Exiting the program. */
     exit(EXIT_FAILURE);
 }
 
@@ -220,18 +234,23 @@ void closefs(FILE* fs)
  */
 FILE* openfs(char* fname, char* mode)
 {
-    FILE* fs;   /* The pointer to the file stream. */
+    FILE* fs;       /* The pointer to the file stream. */
+    char* tstamp;   /* A time stamp. */
 
     /* Opening the file. */
     if ((fs = fopen(fname, mode)) != NULL)
         return fs;
 
-    /* There was an error opening the file so wea re printing the error to
-     * stderr and exiting the program. */
+    /* An error occured so we're printing an error message. */
     fprintf(stderr, 
             "[ %s ] ERROR: In function openfs(): "
             "Could not open file %s: %s\n",
-            timestamp(), fname, strerror(errno));
+            (tstamp = timestamp()), fname, strerror(errno));
+
+    /* De-allocating memory. */
+    free(tstamp);
+
+    /* Freeing memory. */
     exit(EXIT_FAILURE);
 }
 
@@ -244,6 +263,7 @@ bool readfsc(FILE* fs, char* buf)
 {
     const bool SUCCESS = true;      /* Return value if success. */
     const bool END_OF_FILE = false; /* Return value if EOF. */
+    char* tstamp;
 
     /* Getting the next char from the file stream and checking if it was
      * successfully read. */
@@ -254,11 +274,15 @@ bool readfsc(FILE* fs, char* buf)
     if (!ferror(fs)) 
         return END_OF_FILE;
 
-    /* An error occurred so we are printing an error message and exiting 
-     * the program. */
+    /* An error occurred so we're printing an error message. */
     fprintf(stderr,
             "[ %s ] ERROR: In function readfsc(): %s\n",
-            timestamp(), strerror(errno));
+            (tstamp = timestamp()), strerror(errno));
+
+    /* De-allocating memory. */
+    free(tstamp);
+
+    /* Exiting the program. */
     exit(EXIT_FAILURE);
 }
 
@@ -274,6 +298,7 @@ bool readfsl(FILE* fs, char** buf)
     const bool SUCCESS = true;      /* Return value if success. */
     const bool END_OF_FILE = false; /* Return value if EOF. */
     size_t n;                       /* Allocated size of the buffer. */
+    char* tstamp;                   /* A time stamp. */
 
     /* Initialising how big the buffer is. */
     n = 0;
@@ -287,11 +312,15 @@ bool readfsl(FILE* fs, char** buf)
     if (!ferror(fs))
         return END_OF_FILE;
             
-    /* An error occurred so we are printing an error message and exiting
-     * the program. */
+    /* An error occurred so we are printing an error message. */
     fprintf(stdout,
             "[ %s ] ERROR: In function readfsl: %s\n",
             timestamp(), strerror(errno));
+
+    /* De-allocating memory. */
+    free(tstamp);
+
+    /* Exiting the program. */
     exit(EXIT_FAILURE);
 }
 
@@ -522,7 +551,7 @@ void termclear()
  */
 void termclearb()
 {
-    /* Clearing from the cursor to the begining of the line. */
+    /* Clearing from the cursor to the beginning of the line. */
     system("tput el1");
 }
 
@@ -533,6 +562,7 @@ void termclearb()
  */
 void termclearf()
 {
+    /* Clearing from the cursor to the end of the line. */
     system("tput el");
 }
 
@@ -671,6 +701,7 @@ vec2d termres()
  */
 void textmode(enum textmodes m)
 {
+    /* Changing the terminal text-mode. */
     switch (m) 
     {
         case BOLD       : system( "tput bold" ); break;
