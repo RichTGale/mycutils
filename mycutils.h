@@ -5,7 +5,7 @@
  * utility funtions.
  *
  * Author: Richard Gale
- * Version: 11th March, 2023
+ * Version: 4th September, 2023
  */
 
 #ifndef MYCUTILS_H
@@ -13,7 +13,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h> // strerror()
+#include <string.h>
 #include <stdbool.h>
 #include <stdarg.h>
 #include <time.h>
@@ -22,6 +22,9 @@
 #include <unistd.h>
 #include <termios.h>
 
+/**
+ * This is the number of nanoseconds in a second.
+ */
 #define NANOS_PER_SEC 1000000000
 
 /********************************* Types *************************************/
@@ -30,6 +33,15 @@ typedef struct {
     int x;
     int y;
 } vec2d;
+
+/******************************** Maths **************************************/
+
+/**
+ * This function maps value x to a value within a desired range.
+ */
+double map(double x, double in_min,  double in_max, 
+                     double out_min, double out_max);
+
 
 /********************************* Time **************************************/
 
@@ -146,10 +158,10 @@ void sdelchar(char** sp, char remove);
 #define CHAR_WIDTH LINE_HEIGHT
 
 enum directions {
-    UP,
-    DOWN,
-    LEFT,
-    RIGHT
+    ABOVE,
+    BELOW,
+    BEFORE,
+    AFTER
     };
 
 enum termcolours { 
@@ -239,6 +251,9 @@ void termdraws(char* str, vec2d origin, vec2d bounds);
  * function.
  */
 void termprint(char* str, vec2d origin);
+
+void termprintfs(char* filepath, vec2d* origin, enum termcolours colour, 
+                                                enum textmodes mode);
 
 /**
  * This function returns the number of rows and columns of the terminal.

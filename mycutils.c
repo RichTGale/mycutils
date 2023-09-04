@@ -4,10 +4,21 @@
  * This file contains the definitions of various utility functions.
  *
  * Author: Richard Gale
- * Version: 16th July, 2023
+ * Version: 4th September, 2023
  */
 
 #include "mycutils.h"
+
+/******************************** Maths **************************************/
+
+/**
+ * This function maps value x to a value within a desired range.
+ */
+double map(double x, double in_min,  double in_max, 
+                     double out_min, double out_max)
+{
+    return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+}
 
 /********************************* Time **************************************/
 
@@ -137,12 +148,12 @@ void scans(char** buf, char* prompt)
     {
         /* Clearing the line. */
         termclearfb();
-        cursmv(strlen(prompt) + strlen(*buf) + 1, LEFT);
+        cursmv(strlen(prompt) + strlen(*buf) + 1, BEFORE);
 
         /* Printing the prompt and any past user input. */
         fprintf(stdout, "%s%s\n", prompt, *buf);
-        cursmv(1, UP);
-        cursmv(strlen(prompt) + strlen(*buf), RIGHT);
+        cursmv(1, ABOVE);
+        cursmv(strlen(prompt) + strlen(*buf), AFTER);
 
         /* Getting and processing user input. */
         switch (userin = scanc_nowait())
@@ -499,16 +510,16 @@ void cursmv(unsigned int n, enum directions direction)
     /* Creating the command. */
     switch (direction)
     {
-        case UP:
+        case ABOVE:
             strfmt(&cmd, "tput cuu %d", n);
             break;
-        case DOWN:
+        case BELOW:
             strfmt(&cmd, "tput cud %d", n);
             break;
-        case LEFT:
+        case BEFORE:
             strfmt(&cmd, "tput cub %d", n);
             break;
-        case RIGHT:
+        case AFTER:
             strfmt(&cmd, "tput cuf %d", n);
             break;
     }
@@ -728,4 +739,39 @@ void termprint(char* str, vec2d origin)
 
     /* Cleaning up. */
     free(cmd);
+}
+
+void termprintfs(char* filepath, vec2d* origin, enum termcolours colour, 
+                                                enum textmodes mode)
+{
+    FILE* fs;   /* Pointer to the file stream. */
+    char* line; /* The text in the file. */
+
+    /* Ensuring that the buffer is set to NULL. */
+    line = NULL;
+    
+    /* Opening the file. */ 
+    fs = openfs(filepath, "r");
+
+    /* Setting the text -mode and colour. */
+    curscolf(colour);
+    textmode(mode);
+
+    /* Reading the line from the file. */ 
+    while (readfsl(fs, &line)) 
+    {
+        /* Drawing the line. */
+        termprint(line, *origin);
+
+        /* Getting ready to draw the next line. */
+        (*origin).y++;
+        free(line);
+        line = NULL;
+    }
+
+    /* Changing the text-mode and colour back to normal. */
+    textmode(NORMAL);
+
+    /* Closing the file. */
+    closefs(fs);
 }
