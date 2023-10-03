@@ -3,7 +3,7 @@
  *
  * This file gives examples of using the functions in the mycutils library
  *
- * Version: July 17th, 2023
+ * Version: 1.0.1
  * Author: Richard Gale
  */
 
@@ -15,8 +15,6 @@
 
 int main()
 {
-    vec2d origin;               /* The picture's point of origin. */
-    vec2d bounds;               /* The spacial limits of the picture. */
     FILE* fs;                   /* File stream. */
     struct timespec my_timer;   /* Stores a time. */
     uint64_t nanos_per_frame;   /* The number of nanoseconds per frame. */
@@ -30,20 +28,12 @@ int main()
 
     /* Sixty frame per second. */
     nanos_per_frame = NANOS_PER_SEC / 60;
-   
-    /* Drawing heading. */
-    termclear();
-    origin.x = 1;
-    origin.y = 1;
-    bounds = termres();
-    termdraws("art", origin, bounds);
-    
 
     /* Getting a filename from the user. */
     scans(&userin, "Write a name for the file: ");
 
     /* Creating a file name. */
-    strfmt(&filename, "%s.txt", userin);
+    strfmt(&filename, "%s", userin);
     free(userin); 
     fs = openfs(filename, "w");
 

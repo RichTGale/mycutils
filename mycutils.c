@@ -3,7 +3,7 @@
  *
  * This file contains the definitions of various utility functions and types.
  *
- * Version: 1.0.1
+ * Version: 1.0.2
  * Author: Richard Gale
  */
 
@@ -148,12 +148,12 @@ void scans(char** buf, char* prompt)
     {
         /* Clearing the line. */
         clearfb();
-        move_cursor(strlen(prompt) + strlen(*buf) + 1, BEFORE);
+        move_cursor(BEFORE, strlen(prompt) + strlen(*buf) + 1);
 
         /* Printing the prompt and any past user input. */
         fprintf(stdout, "%s%s\n", prompt, *buf);
-        move_cursor(1, ABOVE);
-        move_cursor(strlen(prompt) + strlen(*buf), AFTER);
+        move_cursor(ABOVE, 1);
+        move_cursor(AFTER, strlen(prompt) + strlen(*buf));
 
         /* Getting and processing user input. */
         switch (userin = scanc_nowait())

@@ -5,7 +5,7 @@
  * for various utility funtions and types, as well as enumerations relating
  * to them.
  *
- * Version: 1.0.1
+ * Version: 1.0.2
  * Author: Richard Gale
  */
 
