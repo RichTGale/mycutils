@@ -1,10 +1,10 @@
 /**
  * mycutils.c
  *
- * This file contains the definitions of various utility functions.
+ * This file contains the definitions of various utility functions and types.
  *
+ * Version: 1.0.1
  * Author: Richard Gale
- * Version: 4th September, 2023
  */
 
 #include "mycutils.h"
@@ -147,13 +147,13 @@ void scans(char** buf, char* prompt)
     do
     {
         /* Clearing the line. */
-        termclearfb();
-        cursmv(strlen(prompt) + strlen(*buf) + 1, BEFORE);
+        clearfb();
+        move_cursor(strlen(prompt) + strlen(*buf) + 1, BEFORE);
 
         /* Printing the prompt and any past user input. */
         fprintf(stdout, "%s%s\n", prompt, *buf);
-        cursmv(1, ABOVE);
-        cursmv(strlen(prompt) + strlen(*buf), AFTER);
+        move_cursor(1, ABOVE);
+        move_cursor(strlen(prompt) + strlen(*buf), AFTER);
 
         /* Getting and processing user input. */
         switch (userin = scanc_nowait())
@@ -453,8 +453,8 @@ void sdelchar(char** sp, char remove)
     unsigned c;     /* Index of current char in the string. */
 
     /* Overwriting the unwanted characters. */
-    for (c = 0; c < strlen(*sp); c++)
-    {
+	for (c = 0; c < strlen(*sp); c++)
+	{
         if ((*sp)[c] == remove)
         {
             sdelelem(sp, c);
@@ -469,88 +469,9 @@ void sdelchar(char** sp, char remove)
 /******************************* Terminal ************************************/
 
 /**
- * This function sets the background colour of the terminal cursor.
- */
-void curscolb(enum termcolours c)
-{
-    char* cmd;  /* The command. */
-
-    /* Setting the background colour. */
-    strfmt(&cmd, "tput setab %d", c);
-    system(cmd);
-
-    /* Cleaning up. */
-    free(cmd);
-}
-
-/**
- * This function sets the foreground colour of the temrinal cursor.
- */
-void curscolf(enum termcolours c)
-{
-    char* cmd;   /* The command. */
-
-    /* Setting the colour. */
-    strfmt(&cmd, "tput setaf %d", c);
-    system(cmd);
-
-    /* Cleaning up. */
-    free(cmd);
-}
-
-/**
- * This function moves the terminal cursor a number of rows or columns
- * equal to the number provided to the function, and in a direction that is
- * also provided.
- */
-void cursmv(unsigned int n, enum directions direction)
-{
-    char* cmd; /* The command. */
-
-    /* Creating the command. */
-    switch (direction)
-    {
-        case ABOVE:
-            strfmt(&cmd, "tput cuu %d", n);
-            break;
-        case BELOW:
-            strfmt(&cmd, "tput cud %d", n);
-            break;
-        case BEFORE:
-            strfmt(&cmd, "tput cub %d", n);
-            break;
-        case AFTER:
-            strfmt(&cmd, "tput cuf %d", n);
-            break;
-    }
-
-    /* Moving the cursor. */
-    system(cmd);
-
-    /* Cleaning up. */
-    free(cmd);
-}
-
-/**
- * This function places the terminal at the row and column numbers
- * provided to it.
- */
-void cursput(unsigned int col, unsigned int row)
-{
-    char* cmd;   /* The command. */
-
-    /* Setting the cursor position. */
-    strfmt(&cmd, "tput cup %d %d", row, col);
-    system(cmd);
-
-    /* Cleaning up. */
-    free(cmd); 
-}
-
-/**
  * This function clears the entire terminal and positions the cursor at home.
  */
-void termclear()
+void clear()
 {
     /* Clearing the terminal and putting the cursor at home. */
     system("tput clear");
@@ -560,18 +481,17 @@ void termclear()
  * This function clears the current line the terminal cursor is on from
  * the position of the cursor to the line's beginning.
  */
-void termclearb()
+void clearb()
 {
     /* Clearing from the cursor to the beginning of the line. */
     system("tput el1");
 }
 
-
 /**
  * This function clears the current line the terminal cursor is on from
  * the position of the cursor to the line's end.
  */
-void termclearf()
+void clearf()
 {
     /* Clearing from the cursor to the end of the line. */
     system("tput el");
@@ -581,95 +501,17 @@ void termclearf()
  * This function clears the entire line that the terminal cursor is currently
  * on.
  */
-void termclearfb()
+void clearfb()
 {
     /* Clearing the line that the terminal cursor is currently on. */
-    termclearf();
-    termclearb();
-}
-
-/**
- * This function draws in the terminal based on the contents of a file.
- */
-void termdrawfs(char* filepath, vec2d origin, vec2d bounds)
-{
-    FILE* fs;   /* Pointer to the file stream. */
-    char* line; /* The text in the file. */
-
-    /* Ensuring that the buffer is set to NULL. */
-    line = NULL;
-    
-    /* Opening the file. */ 
-    fs = openfs(filepath, "r");
-   
-    /* Reading the line from the file. */ 
-	while (readfsl(fs, &line)) 
-    {
-        /* Drawing the line. */
-        termdrawl(line, strlen(line), origin, bounds);
-
-        /* Getting ready to draw the next line. */
-        origin.y++;
-        free(line);
-        line = NULL;
-    }
-
-    /* Closing the file. */
-    closefs(fs);
-}
-
-/**
- * This function draw a single row of an art file.
- */
-void termdrawl(char* text, size_t text_len, vec2d origin, vec2d bounds)
-{
-    int c;  // The current column of the row
-
-    /* Moving the cursor to the origin. */
-    cursput(origin.x, origin.y);
-    
-    /* Drawing the row. */
-    for (c = 0; c < text_len && c < bounds.x; c++)
-    {
-        /* Checking if there should be something drawn in theis column. */
-        if (text[c] == '1')
-        {
-            /* Drawing a filled space. */
-            curscolb(WHITE);
-            system("printf \" \"");
-        }
-        else
-        {
-            /* Drawing an empty space. */
-            system("tput cuf1");
-        }
-    }
-    textmode(NORMAL);
-}
-
-/**
- * This function draws a string in the terminal.
- * The art files need to exist for each character.
- */
-void termdraws(char* str, vec2d origin, vec2d bounds)
-{
-    char* filepath; // Path of the current file
-    int c;          // Current letter in the string
-
-    /* Drawing the string. */
-    for (c = 0; c < strlen(str); c++)
-    {
-        strfmt(&filepath, "./art/%c.txt", str[c]);
-        termdrawfs(filepath, origin, bounds);
-        origin.x += CHAR_WIDTH;
-        free(filepath);
-    }
+    clearf();
+    clearb();
 }
 
 /**
  * This function returns the number of rows and columns of the terminal.
  */
-vec2d termres()
+vec2d get_res()
 {
     vec2d res;      /* Storage for the rows and columns. */
     FILE* rfp;      /* File stream for the rows file. */
@@ -708,40 +550,44 @@ vec2d termres()
 }
 
 /**
- * This function changes the terminal text-mode.
+ * This function moves the terminal cursor a number of rows or columns
+ * equal to the number provided to the function, and in a direction that is
+ * also provided.
  */
-void textmode(enum textmodes m)
+void move_cursor(enum directions direction, unsigned int n)
 {
-    /* Changing the terminal text-mode. */
-    switch (m) 
+    char* cmd; /* The command. */
+
+    /* Creating the command. */
+    switch (direction)
     {
-        case BOLD       : system( "tput bold" ); break;
-        case NORMAL     : system( "tput sgr0" ); break;
-        case BLINK      : system( "tput blink" ); break;
-        case REVERSE    : system( "tput smso" ); break;
-        case UNDERLINE  : system( "tput smul" ); break;
+        case ABOVE:
+            strfmt(&cmd, "tput cuu %d", n);
+            break;
+        case BELOW:
+            strfmt(&cmd, "tput cud %d", n);
+            break;
+        case BEFORE:
+            strfmt(&cmd, "tput cub %d", n);
+            break;
+        case AFTER:
+            strfmt(&cmd, "tput cuf %d", n);
+            break;
     }
-}
 
-/**
- * This function prints the string provided to it into the the terminal
- * at the location specified by the vec2d that is also provided to the
- * function.
- */
-void termprint(char* str, vec2d origin)
-{
-    char* cmd;  // The command
-
-    /* Printing the string. */
-    cursput(origin.x, origin.y);
-    strfmt(&cmd, "printf \"%s\"", str);
+    /* Moving the cursor. */
     system(cmd);
 
     /* Cleaning up. */
     free(cmd);
 }
 
-void termprintfs(char* filepath, vec2d* origin, enum termcolours colour, 
+/**
+ * This function prints the text file at the file path provided to it. It
+ * prints the text file in the colours and mode that are provided to
+ * the function.
+ */
+void print_fs_mod(char* filepath, vec2d origin, enum termcolours colour, 
                                                 enum textmodes mode)
 {
     FILE* fs;   /* Pointer to the file stream. */
@@ -753,25 +599,124 @@ void termprintfs(char* filepath, vec2d* origin, enum termcolours colour,
     /* Opening the file. */ 
     fs = openfs(filepath, "r");
 
-    /* Setting the text -mode and colour. */
-    curscolf(colour);
-    textmode(mode);
+    /* Setting the text mode and foreground colour. */
+    text_mode(mode);
+    text_fcol(colour);
 
     /* Reading the line from the file. */ 
     while (readfsl(fs, &line)) 
     {
         /* Drawing the line. */
-        termprint(line, *origin);
+        print_str(line, origin);
 
         /* Getting ready to draw the next line. */
-        (*origin).y++;
+        origin.y++;
         free(line);
         line = NULL;
     }
 
     /* Changing the text-mode and colour back to normal. */
-    textmode(NORMAL);
+    text_mode(NORMAL);
 
     /* Closing the file. */
     closefs(fs);
+}
+
+/**
+ * This function prints the string provided to it at the position that is
+ * also provided to the function.
+ */
+void print_str(char* str, vec2d pos)
+{
+    char* cmd;  // The command
+
+    /* Printing the string. */
+    put_cursor(pos.x, pos.y);
+    strfmt(&cmd, "printf \"%s\"", str);
+    system(cmd);
+
+    /* Cleaning up. */
+    free(cmd);
+}
+
+/**
+ * This function prints the string provided to it at the position
+ * that is also provided. It prints the string in the colours and in the
+ * mode provided.
+ */
+void print_str_mod(char* str, vec2d pos, enum termcolours fcol,
+                                         enum textmodes mode)
+{
+    /* Setting the text mode and foreground colour. */
+    text_mode(mode);
+    text_fcol(fcol);
+
+    /* Printing the string. */
+    print_str(str, pos);
+
+    /* Reverting changes to the textcolours and mode. */
+    text_mode(NORMAL);
+}
+
+
+/**
+ * This function places the terminal at the row and column numbers
+ * provided to it.
+ */
+void put_cursor(unsigned int col, unsigned int row)
+{
+    char* cmd;   /* The command. */
+
+    /* Setting the cursor position. */
+    strfmt(&cmd, "tput cup %d %d", row, col);
+    system(cmd);
+
+    /* Cleaning up. */
+    free(cmd); 
+}
+
+/**
+ * This function sets the background colour of the terminal cursor.
+ */
+void text_bcol(enum termcolours c)
+{
+    char* cmd;  /* The command. */
+
+    /* Setting the background colour. */
+    strfmt(&cmd, "tput setab %d", c);
+    system(cmd);
+
+    /* Cleaning up. */
+    free(cmd);
+}
+
+/**
+ * This function sets the foreground colour of the temrinal cursor.
+ */
+void text_fcol(enum termcolours c)
+{
+    char* cmd;   /* The command. */
+
+    /* Setting the colour. */
+    strfmt(&cmd, "tput setaf %d", c);
+    system(cmd);
+
+    /* Cleaning up. */
+    free(cmd);
+}
+
+/**
+ * This function changes the terminal text-mode.
+ */
+void text_mode(enum textmodes m)
+{
+    /* Changing the terminal text-mode. */
+    switch (m) 
+    {
+        case BOLD       : system( "tput bold" ); break;
+        case NORMAL     : system( "tput sgr0" ); break;
+        case BLINK      : system( "tput blink" ); break;
+        case REVERSE    : system( "tput smso" ); break;
+        case UNDERLINE  : system( "tput smul" ); break;
+    }
 }

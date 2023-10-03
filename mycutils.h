@@ -1,11 +1,12 @@
 /**
  * mycutils.h
  *
- * This file contains the public declarations for various
- * utility funtions.
+ * This file containsi public data-structures and function prototype declarations 
+ * for various utility funtions and types, as well as enumerations relating
+ * to them.
  *
+ * Version: 1.0.1
  * Author: Richard Gale
- * Version: 4th September, 2023
  */
 
 #ifndef MYCUTILS_H
@@ -184,85 +185,81 @@ enum textmodes {
     };
 
 /**
- * This function sets the background colour of the terminal cursor.
+ * This function clears the terminal.
  */
-void curscolb(enum termcolours c);
+void clear();
 
 /**
- * This function sets the foreground colour of the temrinal cursor.
+ * This function clears the current line the terminal cursor is on from
+ * the position of the cursor to the line's beginning.
  */
-void curscolf(enum termcolours c);
+void clearb();
+
+/**
+ * This function clears the current line the terminal cursor is on from
+ * the position of the cursor to the line's end.
+ */
+void clearf();
+
+/**
+ * This function clears the entire line that the terminal cursor is currently
+ * on.
+ */
+void clearfb();
+
+/**
+ * This function returns the number of rows and columns of the terminal.
+ */
+vec2d get_res();
 
 /**
  * This function moves the terminal cursor a number of rows or columns
  * equal to the number provided to the function, and in a direction that is
  * also provided.
  */
-void cursmv(unsigned int n, enum directions direction);
+void move_cursor(enum directions direction, unsigned int n);
+
+/**
+ * This function prints the text file at the file path provided to it. It
+ * prints the text file in the colours and mode that are provided to
+ * the function.
+ */
+void print_fs_mod(char* filepath, vec2d origin, enum termcolours colour, 
+                                                enum textmodes mode);
+
+/**
+ * This function prints the string provided to it at the position that is
+ * also provided to the function.
+ */
+void print_str(char* str, vec2d pos);
+
+/**
+ * This function prints the string provided to it at the location
+ * that is also provided. It prints the string in the colours and in the
+ * mode provided.
+ */
+void print_str_mod(char* str, vec2d origin, enum termcolours fcol,
+                                            enum textmodes mode);
 
 /**
  * This function places the terminal cursor at the row and column numbers
  * provided to it.
  */
-void cursput(unsigned int col, unsigned int row);
+void put_cursor(unsigned int col, unsigned int row);
 
 /**
- * This function clears the terminal.
+ * This function sets the background colour of the terminal cursor.
  */
-void termclear();
+void text_bcol(enum termcolours c);
 
 /**
- * This function clears the current line the terminal cursor is on from
- * the position of the cursor to the line's beginning.
+ * This function sets the foreground colour of the temrinal cursor.
  */
-void termclearb();
-
-/**
- * This function clears the current line the terminal cursor is on from
- * the position of the cursor to the line's end.
- */
-void termclearf();
-
-/**
- * This function clears the entire line that the terminal cursor is currently
- * on.
- */
-void termclearfb();
-
-/**
- * This function draws in the terminal based on the contents of a file.
- */
-void termdrawfs(char* filepath, vec2d origin, vec2d bounds);
-
-/**
- * This function draw a single row of an art file.
- */
-void termdrawl(char* text, size_t text_len, vec2d origin, vec2d bounds);
-
-/**
- * This function draws a string in the terminal.
- * The art files need to exist for each character.
- */
-void termdraws(char* str, vec2d origin, vec2d bounds);
-
-/**
- * This function prints the string provided to it into the the terminal
- * at the location specified by the vec2d that is also provided to the
- * function.
- */
-void termprint(char* str, vec2d origin);
-
-void termprintfs(char* filepath, vec2d* origin, enum termcolours colour, 
-                                                enum textmodes mode);
-
-/**
- * This function returns the number of rows and columns of the terminal.
- */
-vec2d termres();
+void text_fcol(enum termcolours c);
 
 /**
  * This function changes the terminal text-mode.
  */
-void textmode(enum textmodes m);
+void text_mode(enum textmodes m);
 
 #endif // MYCUTILS_H
