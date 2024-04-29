@@ -135,7 +135,7 @@ void scans(char** buf, char* prompt)
     char* buf_cpy;  /* A copy of the buffer. */
     char userin;    /* The user input. */
 
-    /* Arbitrarily initialising to avoid invalid pointer error upon
+    /* Initialising the buffer to avoid invalid pointer error upon
      * initial call to free(). */
     *buf = (char*) malloc(sizeof(char));
     *buf[0] = '\0';
