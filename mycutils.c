@@ -1,5 +1,18 @@
 #include "mycutils.h"
 
+/******************************** Maths **************************************/
+
+/**
+ * This function maps value x to a value within a desired range.
+ */
+double map(double x, double in_min,  double in_max, 
+                     double out_min, double out_max)
+{
+    return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+}i
+
+/******************************* In / Out ************************************/
+
 /**
  * This function returns a new instance of the log data type.
  */
