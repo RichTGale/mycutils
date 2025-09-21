@@ -34,7 +34,15 @@ typedef struct {
     int y;
 } cart2d;
 
-/******************************** in / out ***********************************/
+/******************************** Maths **************************************/
+
+/**
+ * This function maps value x to a value within a desired range.
+ */
+double map(double x, double in_min,  double in_max, 
+                     double out_min, double out_max);
+
+/******************************** In / Out ***********************************/
 
 /**
  * This function returns a new instance of the log data type.
